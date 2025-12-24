@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "34190540990",
+    "project_id": "autodoc-2209",
+    "storage_bucket": "autodoc-2209.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:34190540990:android:905f39131c87e9b65c1eef",
+        "android_client_info": {
+          "package_name": "com.autodocmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARBmoNNhkFcNEZR8LCPBQxfng4LQhPBfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

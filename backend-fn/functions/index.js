@@ -19,19 +19,19 @@ exports.processDocument = onObjectFinalized(
     const filePath = object.name;
     const contentType = object.contentType;
 
-    // Only images
-    if (!contentType || !contentType.startsWith("image/")) {
+    // Check if it's an image (with fallback for contentType issues)
+    const isImage =
+      (contentType && contentType.startsWith("image/")) ||
+      filePath.match(/\.(jpg|jpeg|png|webp)$/i);
+
+    if (!isImage) {
       logger.info("Not an image, skipping:", filePath);
       return;
     }
 
     // Expected path: users/{uid}/uploads/{docId}.jpg|png|webp
     const parts = filePath.split("/");
-    if (
-      parts.length < 4 ||
-      parts[0] !== "users" ||
-      parts[2] !== "uploads"
-    ) {
+    if (parts.length < 4 || parts[0] !== "users" || parts[2] !== "uploads") {
       logger.info("Invalid path, skipping:", filePath);
       return;
     }
@@ -54,8 +54,7 @@ exports.processDocument = onObjectFinalized(
       const visionClient = new vision.ImageAnnotatorClient();
       const [result] = await visionClient.textDetection(tempFilePath);
 
-      const extractedText =
-        result.fullTextAnnotation?.text || "";
+      const extractedText = result.fullTextAnnotation?.text || "";
 
       // Save OCR result
       await admin
