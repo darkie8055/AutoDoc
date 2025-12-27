@@ -1,10 +1,16 @@
 import { storage, db, auth } from '../config/firebase';
 
+// STAGE 13: Standardized document schema
 export interface OcrResult {
   status: 'processing' | 'ocr_done' | 'failed';
   rawText?: string;
   error?: string;
+  createdAt: any;
   updatedAt: any;
+  filePath: string;
+  contentType: string;
+  // STAGE 14: NLP prep placeholder
+  nlpStatus?: 'pending' | 'processing' | 'done';
 }
 
 /**
@@ -47,6 +53,7 @@ const uploadWithUserId = async (
 
   console.log('Upload successful');
 
+  // STAGE 13 & 14: Standardized schema with NLP prep
   await db()
     .collection('users')
     .doc(userId)
@@ -55,8 +62,13 @@ const uploadWithUserId = async (
     .set(
       {
         status: 'processing',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         uploadedAt: new Date(),
         storagePath,
+        filePath: storagePath,
+        contentType: 'image/jpeg',
+        nlpStatus: 'pending', // STAGE 14: NLP placeholder
       },
       { merge: true },
     );
@@ -77,6 +89,8 @@ export const listenToOcrStatus = (
   // TEMPORARY: Use test user ID for development
   const userId = auth().currentUser?.uid || 'test-user-123';
 
+  console.log(`📡 Starting listener for doc: ${docId}, user: ${userId}`);
+
   return db()
     .collection('users')
     .doc(userId)
@@ -85,13 +99,21 @@ export const listenToOcrStatus = (
     .onSnapshot(
       snapshot => {
         if (snapshot.exists()) {
-          callback(snapshot.data() as OcrResult);
+          const data = snapshot.data() as OcrResult;
+          console.log(
+            `📡 Status update for ${docId}:`,
+            data.status,
+            'rawText length:',
+            data.rawText?.length || 0,
+          );
+          callback(data);
         } else {
+          console.log(`📡 Document ${docId} does not exist yet`);
           callback(null);
         }
       },
       error => {
-        console.error('Error listening to OCR status:', error);
+        console.error('❌ Error listening to OCR status:', error);
         callback(null);
       },
     );

@@ -1,54 +1,63 @@
-"use client"
+import { useState, useEffect } from 'react';
+import { db, auth } from '../config/firebase';
+import type { Document } from '../types';
 
-import { useState, useEffect } from "react"
-import { storage } from "../utils/storage"
-import type { Document } from "../types"
-
+// STAGE 11: Connect to Firestore
 export const useDocuments = () => {
-  const [documents, setDocuments] = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDocuments()
-  }, [])
-
-  const loadDocuments = async () => {
-    try {
-      const stored = await storage.getItem<Document[]>("documents")
-      if (stored) {
-        setDocuments(stored)
-      }
-    } catch (error) {
-      console.error("Error loading documents:", error)
-    } finally {
-      setLoading(false)
+    const userId = auth().currentUser?.uid;
+    if (!userId) {
+      setLoading(false);
+      return;
     }
-  }
 
-  const addDocument = async (document: Document) => {
-    const updated = [...documents, document]
-    setDocuments(updated)
-    await storage.setItem("documents", updated)
-  }
+    // STAGE 11: Real-time Firestore listener
+    const unsubscribe = db()
+      .collection('users')
+      .doc(userId)
+      .collection('documents')
+      .orderBy('uploadedAt', 'desc')
+      .onSnapshot(
+        snapshot => {
+          const docs = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Document[];
+          setDocuments(docs);
+          setLoading(false);
+        },
+        error => {
+          console.error('Error fetching documents:', error);
+          setLoading(false);
+        },
+      );
+
+    return () => unsubscribe();
+  }, []);
 
   const deleteDocument = async (id: string) => {
-    const updated = documents.filter((doc) => doc.id !== id)
-    setDocuments(updated)
-    await storage.setItem("documents", updated)
-  }
+    const userId = auth().currentUser?.uid;
+    if (!userId) return;
 
-  const updateDocument = async (id: string, updates: Partial<Document>) => {
-    const updated = documents.map((doc) => (doc.id === id ? { ...doc, ...updates } : doc))
-    setDocuments(updated)
-    await storage.setItem("documents", updated)
-  }
+    try {
+      await db()
+        .collection('users')
+        .doc(userId)
+        .collection('documents')
+        .doc(id)
+        .delete();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      throw error;
+    }
+  };
 
   return {
     documents,
     loading,
-    addDocument,
     deleteDocument,
-    updateDocument,
-    refresh: loadDocuments,
-  }
-}
+  };
+};

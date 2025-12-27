@@ -27,70 +27,82 @@ import {
 
 type Props = NativeStackScreenProps<MainStackParamList, 'Upload'>;
 
+// STAGE 10: Upload states
+type UploadState = 'idle' | 'uploading' | 'processing' | 'done' | 'failed';
+
 export default function UploadScreen({ navigation }: Props) {
-  const [uploading, setUploading] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [uploadState, setUploadState] = useState<UploadState>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleImagePicked = async (response: ImagePickerResponse) => {
-    console.log('Image picker response:', response);
-
     if (response.didCancel) {
-      console.log('User cancelled');
       return;
     }
 
     if (response.errorCode) {
-      console.log('Picker error:', response.errorCode, response.errorMessage);
       Alert.alert('Error', response.errorMessage || 'Failed to pick image');
       return;
     }
 
     const asset = response.assets?.[0];
     if (!asset?.uri) {
-      console.log('No asset URI');
       Alert.alert('Error', 'No image selected');
       return;
     }
 
-    console.log('Image picked:', asset.uri);
-
     try {
-      setUploading(true);
+      setUploadState('uploading');
+      setUploadProgress(0);
+      setErrorMessage(null);
 
       // Generate unique document ID
       const docId = `doc-${Date.now()}`;
 
-      console.log('Uploading with docId:', docId);
+      // Simulate progress during upload (Firebase Storage doesn't provide real progress in RN)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
 
       // Upload image and trigger OCR
       await uploadImageForOcr(asset.uri, docId);
 
-      console.log('Upload complete');
-      setUploading(false);
-      setProcessing(true);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      setUploadState('processing');
 
       // Listen to OCR status
       const unsubscribe = listenToOcrStatus(docId, result => {
+        console.log('📱 Received OCR update:', result?.status);
+
         if (result) {
           setOcrResult(result);
 
           if (result.status === 'ocr_done') {
-            setProcessing(false);
+            console.log(
+              '✅ OCR complete, extracted text length:',
+              result.rawText?.length,
+            );
+            setUploadState('done');
             Alert.alert(
               'OCR Complete!',
               `Extracted Text:\n\n${result.rawText?.substring(0, 200)}...`,
               [
                 {
-                  text: 'View Full Text',
-                  onPress: () => console.log(result.rawText),
+                  text: 'OK',
+                  onPress: () => {
+                    setUploadState('idle');
+                    setUploadProgress(0);
+                  },
                 },
-                { text: 'OK' },
               ],
             );
             unsubscribe();
           } else if (result.status === 'failed') {
-            setProcessing(false);
+            console.log('❌ OCR failed:', result.error);
+            setUploadState('failed');
+            setErrorMessage(result.error || 'OCR processing failed');
             Alert.alert('OCR Failed', result.error || 'Unknown error');
             unsubscribe();
           }
@@ -98,8 +110,8 @@ export default function UploadScreen({ navigation }: Props) {
       });
     } catch (error: any) {
       console.error('Upload error:', error);
-      setUploading(false);
-      setProcessing(false);
+      setUploadState('failed');
+      setErrorMessage(error.message || 'Failed to upload image');
       Alert.alert('Upload Failed', error.message || 'Failed to upload image');
     }
   };
@@ -117,8 +129,6 @@ export default function UploadScreen({ navigation }: Props) {
   };
 
   const handlePickFromGallery = () => {
-    console.log('Gallery button pressed');
-    Alert.alert('Debug', 'Gallery button clicked');
     launchImageLibrary(
       {
         mediaType: 'photo',
@@ -145,21 +155,80 @@ export default function UploadScreen({ navigation }: Props) {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Processing Status */}
-        {(uploading || processing) && (
+        {/* STAGE 10: Upload Status with Progress */}
+        {uploadState !== 'idle' && (
           <Card style={styles.statusCard}>
-            <ActivityIndicator size="large" color="#14B8A6" />
-            <Text style={styles.statusText}>
-              {uploading ? 'Uploading image...' : 'Processing OCR...'}
-            </Text>
+            {(uploadState === 'uploading' || uploadState === 'processing') && (
+              <ActivityIndicator size="large" color="#14B8A6" />
+            )}
+
+            {uploadState === 'uploading' && (
+              <>
+                <Text style={styles.statusText}>Uploading image...</Text>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${uploadProgress}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressText}>{uploadProgress}%</Text>
+              </>
+            )}
+
+            {uploadState === 'processing' && (
+              <>
+                <Text style={styles.statusText}>Processing OCR...</Text>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[styles.progressFill, styles.progressIndeterminate]}
+                  />
+                </View>
+                <Text style={styles.progressText}>
+                  Extracting text from document...
+                </Text>
+              </>
+            )}
+
+            {uploadState === 'done' && (
+              <>
+                <Icon name="check-circle" size={48} color="#10B981" />
+                <Text style={styles.statusText}>OCR Complete!</Text>
+              </>
+            )}
+
+            {uploadState === 'failed' && (
+              <>
+                <Icon name="x-circle" size={48} color="#EF4444" />
+                <Text style={styles.statusText}>Upload Failed</Text>
+                {errorMessage && (
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                )}
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={() => {
+                    setUploadState('idle');
+                    setErrorMessage(null);
+                    setUploadProgress(0);
+                  }}
+                >
+                  <Text style={styles.retryButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </Card>
         )}
 
         {/* Take Photo Card */}
         <TouchableOpacity
-          style={styles.primaryCard}
+          style={[
+            styles.primaryCard,
+            (uploadState === 'uploading' || uploadState === 'processing') &&
+              styles.cardDisabled,
+          ]}
           onPress={handleTakePhoto}
-          disabled={uploading || processing}
+          disabled={uploadState === 'uploading' || uploadState === 'processing'}
         >
           <View style={styles.primaryIcon}>
             <Icon name="camera" size={40} color="#FFFFFF" />
@@ -172,9 +241,13 @@ export default function UploadScreen({ navigation }: Props) {
 
         {/* Upload from Gallery Card */}
         <TouchableOpacity
-          style={styles.secondaryCard}
+          style={[
+            styles.secondaryCard,
+            (uploadState === 'uploading' || uploadState === 'processing') &&
+              styles.cardDisabled,
+          ]}
           onPress={handlePickFromGallery}
-          disabled={uploading || processing}
+          disabled={uploadState === 'uploading' || uploadState === 'processing'}
         >
           <View style={styles.secondaryIcon}>
             <Icon name="upload" size={40} color="#6B7280" />
@@ -357,5 +430,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111827',
     marginTop: 12,
+  },
+  progressBar: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    marginTop: 16,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#14B8A6',
+    borderRadius: 4,
+  },
+  progressIndeterminate: {
+    width: '100%',
+    opacity: 0.6,
+  },
+  progressText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  errorText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#14B8A6',
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  cardDisabled: {
+    opacity: 0.5,
   },
 });

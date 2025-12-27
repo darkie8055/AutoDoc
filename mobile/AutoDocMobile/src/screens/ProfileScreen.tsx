@@ -1,22 +1,30 @@
-"use client"
+'use client';
 
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Switch } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import type { NativeStackScreenProps } from "@react-navigation/native-stack"
-import type { RootStackParamList } from "../../App"
-import { useState } from "react"
-import BottomNav from "../components/BottomNav"
-import Card from "../components/Card"
-import Icon from "react-native-vector-icons/Feather"
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  Switch,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { MainStackParamList } from '../../App';
+import { useState } from 'react';
+import BottomNav from '../components/BottomNav';
+import Card from '../components/Card';
+import Icon from 'react-native-vector-icons/Feather';
 
-type Props = NativeStackScreenProps<RootStackParamList, "Profile">
+type Props = NativeStackScreenProps<MainStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
-  const [biometricEnabled, setBiometricEnabled] = useState(true)
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       <View style={styles.header}>
@@ -48,12 +56,14 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingLabel}>Biometric Login</Text>
-              <Text style={styles.settingDescription}>Use fingerprint or face ID</Text>
+              <Text style={styles.settingDescription}>
+                Use fingerprint or face ID
+              </Text>
             </View>
             <Switch
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
-              trackColor={{ false: "#D1D5DB", true: "#14B8A6" }}
+              trackColor={{ false: '#D1D5DB', true: '#14B8A6' }}
               thumbColor="#FFFFFF"
             />
           </Card>
@@ -64,12 +74,14 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
             <View style={styles.settingContent}>
               <Text style={styles.settingLabel}>Push Notifications</Text>
-              <Text style={styles.settingDescription}>Get reminders and alerts</Text>
+              <Text style={styles.settingDescription}>
+                Get reminders and alerts
+              </Text>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: "#D1D5DB", true: "#14B8A6" }}
+              trackColor={{ false: '#D1D5DB', true: '#14B8A6' }}
               thumbColor="#FFFFFF"
             />
           </Card>
@@ -81,7 +93,9 @@ export default function ProfileScreen({ navigation }: Props) {
               </View>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Change Password</Text>
-                <Text style={styles.settingDescription}>Update your password</Text>
+                <Text style={styles.settingDescription}>
+                  Update your password
+                </Text>
               </View>
               <Icon name="chevron-right" size={20} color="#9CA3AF" />
             </Card>
@@ -126,68 +140,68 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <BottomNav activeTab="Settings" />
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: '#E5E7EB',
   },
   title: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
   },
   content: {
     flex: 1,
   },
   profileSection: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 32,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     marginBottom: 16,
   },
   avatar: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "#F0FDFA",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#F0FDFA',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
   name: {
     fontSize: 24,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 4,
   },
   email: {
     fontSize: 14,
-    color: "#6B7280",
+    color: '#6B7280',
     marginBottom: 16,
   },
   editButton: {
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#14B8A6",
+    backgroundColor: '#14B8A6',
   },
   editButtonText: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   section: {
     paddingHorizontal: 16,
@@ -195,13 +209,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 12,
   },
   settingCard: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     padding: 16,
     marginBottom: 8,
@@ -210,36 +224,36 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F0FDFA",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#F0FDFA',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   settingContent: {
     flex: 1,
   },
   settingLabel: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#111827",
+    fontWeight: '500',
+    color: '#111827',
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 14,
-    color: "#6B7280",
+    color: '#6B7280',
   },
   logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     marginHorizontal: 16,
     paddingVertical: 16,
     borderRadius: 12,
-    backgroundColor: "#FEE2E2",
+    backgroundColor: '#FEE2E2',
   },
   logoutText: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#EF4444",
+    fontWeight: '600',
+    color: '#EF4444',
   },
-})
+});

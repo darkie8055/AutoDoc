@@ -1,78 +1,117 @@
-"use client"
-
-import { useState } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native"
-import { useAuth } from "../contexts/AuthContext"
-import { Button } from "../components/Button"
-import { Input } from "../components/Input"
-import { colors } from "../theme/colors"
-import { validation } from "../utils/validation"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import type { AuthStackParamList } from "../../App"
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+import { colors } from '../theme/colors';
+import { validation } from '../utils/validation';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../App';
 
 type SignupScreenProps = {
-  navigation: NativeStackNavigationProp<AuthStackParamList, "Signup">
-}
+  navigation: NativeStackNavigationProp<AuthStackParamList, 'Signup'>;
+};
 
 export default function SignupScreen({ navigation }: SignupScreenProps) {
-  const { signup } = useAuth()
+  // STAGE 6: Real signup function available
+  const { signup } = useAuth();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
-  const [loading, setLoading] = useState(false)
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    const nameError = validation.name(formData.name)
-    const emailError = validation.email(formData.email)
-    const passwordError = validation.password(formData.password)
-    const confirmPasswordError = validation.confirmPassword(formData.password, formData.confirmPassword)
+    const nameError = validation.name(formData.name);
+    const emailError = validation.email(formData.email);
+    const passwordError = validation.password(formData.password);
+    const confirmPasswordError = validation.confirmPassword(
+      formData.password,
+      formData.confirmPassword,
+    );
 
     if (nameError || emailError || passwordError || confirmPasswordError) {
       setErrors({
-        name: nameError || "",
-        email: emailError || "",
-        password: passwordError || "",
-        confirmPassword: confirmPasswordError || "",
-      })
-      return
+        name: nameError || '',
+        email: emailError || '',
+        password: passwordError || '',
+        confirmPassword: confirmPasswordError || '',
+      });
+      return;
     }
 
-    setLoading(true)
-    const success = await signup(formData)
-    setLoading(false)
+    setLoading(true);
+    try {
+      // STAGE 6: Call Firebase signup - onAuthStateChanged will update UI
+      await signup(formData.email, formData.password, formData.name);
+      // ✅ User is auto-logged in and navigation happens via auth state change
+      console.log(
+        '✅ Signup successful - waiting for auth listener to update UI',
+      );
+    } catch (error: any) {
+      console.error('❌ Signup error:', error);
 
-    if (success) {
-      navigation.navigate("Onboarding")
+      // Handle specific Firebase errors
+      let errorMessage = 'Unable to create account. Please try again.';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      }
+
+      setErrors({
+        name: '',
+        email: error.code === 'auth/email-already-in-use' ? errorMessage : '',
+        password: error.code === 'auth/weak-password' ? errorMessage : '',
+        confirmPassword: '',
+      });
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const updateField = (field: keyof typeof formData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    setErrors((prev) => ({ ...prev, [field]: "" }))
-  }
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Sign up to get started with SecureDoc</Text>
+          <Text style={styles.subtitle}>
+            Sign up to get started with SecureDoc
+          </Text>
         </View>
 
         <View style={styles.form}>
           <Input
             label="Full Name"
             value={formData.name}
-            onChangeText={(text) => updateField("name", text)}
+            onChangeText={text => updateField('name', text)}
             error={errors.name}
             placeholder="Enter your full name"
           />
@@ -80,7 +119,7 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           <Input
             label="Email"
             value={formData.email}
-            onChangeText={(text) => updateField("email", text)}
+            onChangeText={text => updateField('email', text)}
             keyboardType="email-address"
             autoCapitalize="none"
             error={errors.email}
@@ -90,7 +129,7 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           <Input
             label="Password"
             value={formData.password}
-            onChangeText={(text) => updateField("password", text)}
+            onChangeText={text => updateField('password', text)}
             secureTextEntry
             error={errors.password}
             placeholder="Create a password"
@@ -99,24 +138,29 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
           <Input
             label="Confirm Password"
             value={formData.confirmPassword}
-            onChangeText={(text) => updateField("confirmPassword", text)}
+            onChangeText={text => updateField('confirmPassword', text)}
             secureTextEntry
             error={errors.confirmPassword}
             placeholder="Confirm your password"
           />
 
-          <Button title="Sign Up" onPress={handleSignup} loading={loading} style={styles.signupButton} />
+          <Button
+            title="Sign Up"
+            onPress={handleSignup}
+            loading={loading}
+            style={styles.signupButton}
+          />
         </View>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
             <Text style={styles.loginLink}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -126,7 +170,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: 24,
   },
   header: {
@@ -134,7 +178,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
   },
@@ -149,9 +193,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   footerText: {
     color: colors.textSecondary,
@@ -160,6 +204,6 @@ const styles = StyleSheet.create({
   loginLink: {
     color: colors.primary,
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
   },
-})
+});

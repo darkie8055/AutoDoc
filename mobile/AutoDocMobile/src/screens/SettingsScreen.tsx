@@ -1,27 +1,60 @@
-"use client"
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  Switch,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { MainStackParamList } from '../../App';
+import BottomNav from '../components/BottomNav';
+import Card from '../components/Card';
+import Icon from 'react-native-vector-icons/Feather';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, StatusBar, Switch } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
-import type { NativeStackScreenProps } from "@react-navigation/native-stack"
-import type { RootStackParamList } from "../../App"
-import BottomNav from "../components/BottomNav"
-import Card from "../components/Card"
-import Icon from "react-native-vector-icons/Feather"
-import { useState } from "react"
-
-type Props = NativeStackScreenProps<RootStackParamList, "Settings">
+type Props = NativeStackScreenProps<MainStackParamList, 'Settings'>;
 
 export default function SettingsScreen({ navigation }: Props) {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [biometricEnabled, setBiometricEnabled] = useState(false)
+  const { logout, user } = useAuth();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+
+  // STAGE 15: Logout confirmation
+  const handleLogout = async () => {
+    Alert.alert('Confirm Logout', 'Are you sure you want to log out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (error) {
+            console.error('Logout error:', error);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Icon name="chevron-left" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.title}>Settings</Text>
@@ -36,8 +69,12 @@ export default function SettingsScreen({ navigation }: Props) {
               <Icon name="user" size={24} color="#FFFFFF" />
             </View>
             <View>
-              <Text style={styles.profileName}>John Anderson</Text>
-              <Text style={styles.profileEmail}>john@example.com</Text>
+              <Text style={styles.profileName}>
+                {user?.displayName || 'User'}
+              </Text>
+              <Text style={styles.profileEmail}>
+                {user?.email || 'No email'}
+              </Text>
             </View>
           </View>
           <Icon name="chevron-right" size={20} color="#6B7280" />
@@ -54,13 +91,15 @@ export default function SettingsScreen({ navigation }: Props) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingName}>Notifications</Text>
-                <Text style={styles.settingDescription}>Expiry alerts & security</Text>
+                <Text style={styles.settingDescription}>
+                  Expiry alerts & security
+                </Text>
               </View>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: "#D1D5DB", true: "#14B8A6" }}
+              trackColor={{ false: '#D1D5DB', true: '#14B8A6' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -72,13 +111,15 @@ export default function SettingsScreen({ navigation }: Props) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingName}>Biometric Lock</Text>
-                <Text style={styles.settingDescription}>Face ID / Fingerprint</Text>
+                <Text style={styles.settingDescription}>
+                  Face ID / Fingerprint
+                </Text>
               </View>
             </View>
             <Switch
               value={biometricEnabled}
               onValueChange={setBiometricEnabled}
-              trackColor={{ false: "#D1D5DB", true: "#14B8A6" }}
+              trackColor={{ false: '#D1D5DB', true: '#14B8A6' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -95,20 +136,26 @@ export default function SettingsScreen({ navigation }: Props) {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingName}>Security Dashboard</Text>
-                <Text style={styles.settingDescription}>View security score</Text>
+                <Text style={styles.settingDescription}>
+                  View security score
+                </Text>
               </View>
             </View>
             <Icon name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.settingItem, styles.settingItemLast]}>
+          <TouchableOpacity
+            style={[styles.settingItem, styles.settingItemLast]}
+          >
             <View style={styles.settingInfo}>
               <View style={styles.settingIcon}>
                 <Icon name="lock" size={20} color="#6B7280" />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.settingName}>Change Password</Text>
-                <Text style={styles.settingDescription}>Update your password</Text>
+                <Text style={styles.settingDescription}>
+                  Update your password
+                </Text>
               </View>
             </View>
             <Icon name="chevron-right" size={20} color="#9CA3AF" />
@@ -129,7 +176,9 @@ export default function SettingsScreen({ navigation }: Props) {
             <Icon name="chevron-right" size={20} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.settingItem, styles.settingItemLast]}>
+          <TouchableOpacity
+            style={[styles.settingItem, styles.settingItemLast]}
+          >
             <View style={styles.settingInfo}>
               <View style={styles.settingIcon}>
                 <Icon name="info" size={20} color="#6B7280" />
@@ -144,7 +193,7 @@ export default function SettingsScreen({ navigation }: Props) {
         </Card>
 
         {/* Log Out Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="log-out" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -161,99 +210,99 @@ export default function SettingsScreen({ navigation }: Props) {
       {/* Bottom Navigation */}
       <BottomNav activeTab="Settings" />
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: '#F9FAFB',
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: '#E5E7EB',
   },
   backButton: {
     width: 40,
     height: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
   },
   profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F0FDFA",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F0FDFA',
     borderWidth: 2,
-    borderColor: "#99F6E4",
+    borderColor: '#99F6E4',
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
     marginBottom: 24,
   },
   profileInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   profileAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#14B8A6",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#14B8A6',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profileName: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 2,
   },
   profileEmail: {
     fontSize: 12,
-    color: "#6B7280",
+    color: '#6B7280',
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: '600',
+    color: '#111827',
     marginBottom: 12,
   },
   settingsCard: {
     padding: 0,
     marginBottom: 24,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: '#F3F4F6',
   },
   settingItemLast: {
     borderBottomWidth: 0,
   },
   settingInfo: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     flex: 1,
   },
@@ -261,30 +310,30 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: "#F3F4F6",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tealIcon: {
-    backgroundColor: "#F0FDFA",
+    backgroundColor: '#F0FDFA',
   },
   settingName: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#111827",
+    fontWeight: '500',
+    color: '#111827',
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 12,
-    color: "#6B7280",
+    color: '#6B7280',
   },
   logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FEF2F2",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF2F2',
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: '#FECACA',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -292,20 +341,20 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#EF4444",
+    fontWeight: '500',
+    color: '#EF4444',
   },
   footer: {
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: 20,
   },
   footerText: {
     fontSize: 12,
-    color: "#6B7280",
+    color: '#6B7280',
     marginBottom: 4,
   },
   footerSubtext: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: '#9CA3AF',
   },
-})
+});

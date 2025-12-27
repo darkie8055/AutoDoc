@@ -56,23 +56,26 @@ exports.processDocument = onObjectFinalized(
 
       const extractedText = result.fullTextAnnotation?.text || "";
 
+      logger.info("Extracted text length:", extractedText.length);
+
       // Save OCR result
-      await admin
+      const docRef = admin
         .firestore()
         .collection("users")
         .doc(userId)
         .collection("documents")
-        .doc(docId)
-        .set(
-          {
-            status: "ocr_done",
-            rawText: extractedText,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-          { merge: true }
-        );
+        .doc(docId);
 
-      logger.info("OCR completed successfully");
+      await docRef.set(
+        {
+          status: "ocr_done",
+          rawText: extractedText,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      logger.info("Status updated to ocr_done for", docId);
     } catch (error) {
       logger.error("OCR failed", error);
 

@@ -19,7 +19,6 @@ import DocumentDataScreen from './src/screens/DocumentDataScreen';
 import DocumentDetailScreen from './src/screens/DocumentDetailScreen';
 import PassportDetailScreen from './src/screens/PassportDetailScreen';
 import PANDetailScreen from './src/screens/PANDetailScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
@@ -41,10 +40,9 @@ export type MainStackParamList = {
   Websites: undefined;
   Phishing: undefined;
   DocumentData: undefined;
-  DocumentDetail: undefined;
+  DocumentDetail: { documentId: string; document: any };
   PassportDetail: undefined;
   PANDetail: undefined;
-  Profile: undefined;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -77,7 +75,6 @@ function MainNavigator() {
         component={PassportDetailScreen}
       />
       <MainStack.Screen name="PANDetail" component={PANDetailScreen} />
-      <MainStack.Screen name="Profile" component={ProfileScreen} />
     </MainStack.Navigator>
   );
 }
